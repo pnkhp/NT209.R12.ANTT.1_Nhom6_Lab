@@ -1,0 +1,103 @@
+#include <studio.h>
+#include <assert.h>
+
+/*
+    1.5 Tính kết quả x/2^n
+    
+    • Input:
+    • Số x nguyên dương
+    • Số n âm (-31 ≤ n ≤ -1)
+
+    PT: divpw2(10, -1) == 20 && divpw2(15, -2) == 60 && divpw2(2, -4) == 32
+    x/2^n ~ x * 2^(-n)
+*/
+
+int divpw2(int x, int n)
+{
+    int neg_n = ~n + 1; // Biểu diễn tương đương của -n là dạng bù 2 của n
+    return x << neg_n; // x * 2^(-n) tương đương dịch trái x sang (-n) bit 
+}
+
+/*
+    1.6 Tính x/2ⁿ với x là số nguyên có dấu (có thể âm),
+    kết quả làm tròn về 0 giống phép chia / của C.
+    
+    Input: Số x nguyên; Số n (0 ≤ n ≤ 30)
+    PT: divpw2s(15,1) == 7 && divpw2s(-15,1) == -7 && divpw2s(-33,4) == -2 && divpw2s(-8,2) == -2
+    Gợi ý: x >> n với x âm làm tròn xuống (−∞); cần cộng thêm độ lệch (bias) 2ⁿ − 1 khi x âm (CSAPP mục 2.3.7).
+*/
+
+int divpw2s(int x, int n)
+{
+    int sign = x >> 31; // Lấy dấu của x (Do x có thể âm hoặc dương)
+    int bias = (1 << n) + ~0; // bias = 2^n - 1
+    int add_bias = bias & sign; // Chỉ cộng bias nếu x âm
+    return (x + add_bias) >> n; // Dịch bit rồi mới chia cho 2^n
+}
+
+/*
+    2.1 int isOpposite(x,y)
+    Kiểm tra 2 số x và y có đối nhau hay không (cùng độ lớn nhưng khác dấu). Trả về 1 nếu đối nhau, 0 nếu ngược lại.
+    *Lưu ý trường hợp số 0.
+
+    • Input: Số nguyên x, y
+    • PT: isOpposite(4,4)==0 && isOpposite(-2,2)==1 && isOpposite(5,-6)==0 && isOpposite(0,0) == 0
+    • Báo cáo: giải thích kết quả của hàm với x = y = 0x80000000 (INT_MIN).
+*/
+
+int isOpposite(x,y)
+{
+    int sum = x + y; // Nếu x và y đối nhau tổng bằng 0
+    return (!sum) & (!!x); // !x trả về 1 nếu x khác 0, 0 nếu x == 0
+
+}
+
+/*
+    2.2 int is16x(x)
+    Kiểm tra 1 số nguyên x có chia hết cho 16 hay không. Trả về 1 nếu là chia hết, không thì trả về 0.
+
+    • Input: Số nguyên x không âm
+    • PT: is16x(16)==1 && is16x(3)==0 && is16x(48)==1 
+*/
+
+int is16x(int x) {
+    /*
+     * Giải thích:
+     * - Một số chia hết cho 16 (2^4) khi và chỉ khi 4 bit cuối cùng của nó đều là 0.
+     * - Ta dùng mặt nạ 0x0F (tức là 15, hằng số hợp lệ <= 255) ở dạng nhị phân là 0000...1111.
+     * - x & 0x0F sẽ lấy ra 4 bit cuối (phần dư khi chia cho 16).
+     * - Nếu phần dư là 0 (tức là chia hết), phép ! sẽ biến 0 thành 1. Ngược lại biến số !=0 thành 0.
+     */
+    return !(x & 0x0F);
+}
+
+
+int main() {
+    int INT_MAX_VAL = 0x7FFFFFFF;
+    int INT_MIN_VAL = 0x80000000;
+
+    printf("--- TEST isOpposite(x, y) ---\n");
+    // Các phép thử (PT) từ đề bài
+    printf("isOpposite(4, 4) == %d (Mong doi: 0)\n", isOpposite(4, 4));
+    printf("isOpposite(-2, 2) == %d (Mong doi: 1)\n", isOpposite(-2, 2));
+    printf("isOpposite(5, -6) == %d (Mong doi: 0)\n", isOpposite(5, -6));
+    printf("isOpposite(0, 0) == %d (Mong doi: 0)\n", isOpposite(0, 0));
+    
+    // Các giá trị biên
+    printf("isOpposite(INT_MAX, -INT_MAX) == %d (Mong doi: 1)\n", isOpposite(INT_MAX_VAL, -INT_MAX_VAL));
+    printf("isOpposite(INT_MIN, INT_MIN) == %d (Xem giai thich trong bao cao)\n", isOpposite(INT_MIN_VAL, INT_MIN_VAL));
+
+    printf("\n--- TEST is16x(x) ---\n");
+    // Các phép thử (PT) từ đề bài
+    printf("is16x(16) == %d (Mong doi: 1)\n", is16x(16));
+    printf("is16x(3) == %d (Mong doi: 0)\n", is16x(3));
+    printf("is16x(48) == %d (Mong doi: 1)\n", is16x(48));
+    
+    // Các giá trị biên
+    printf("is16x(0) == %d (Mong doi: 1)\n", is16x(0));
+    printf("is16x(32) == %d (Mong doi: 1)\n", is16x(32));
+    printf("is16x(INT_MAX) == %d (Mong doi: 0)\n", is16x(INT_MAX_VAL));
+
+    return 0;
+}
+
